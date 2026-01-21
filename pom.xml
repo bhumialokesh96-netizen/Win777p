@@ -76,8 +76,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- BCrypt (included in Spring Security) -->
-        
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
