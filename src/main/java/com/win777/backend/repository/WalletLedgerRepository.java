@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -15,4 +16,7 @@ public interface WalletLedgerRepository extends JpaRepository<WalletLedger, Long
     
     @Query("SELECT COALESCE(SUM(wl.amount), 0) FROM WalletLedger wl WHERE wl.userId = :userId")
     BigDecimal calculateBalance(@Param("userId") Long userId);
+    
+    // Analytics queries
+    List<WalletLedger> findByTransactionTypeAndCreatedAtBetween(String transactionType, LocalDateTime start, LocalDateTime end);
 }

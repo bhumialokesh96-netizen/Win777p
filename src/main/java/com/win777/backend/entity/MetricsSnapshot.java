@@ -2,12 +2,8 @@ package com.win777.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Type;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Map;
-
-import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 
 /**
  * Metrics snapshot entity for real-time dashboard

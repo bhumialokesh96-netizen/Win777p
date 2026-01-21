@@ -10,4 +10,7 @@ import java.util.List;
 public interface WithdrawalRepository extends JpaRepository<Withdrawal, Long> {
     List<Withdrawal> findByUserId(Long userId);
     List<Withdrawal> findByStatus(String status);
+    
+    // Analytics queries
+    long countByStatus(String status);
 }
