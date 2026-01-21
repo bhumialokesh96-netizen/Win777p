@@ -33,6 +33,7 @@ public class AnalyticsService {
     
     private final BrandService brandService;
     private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final WalletLedgerRepository walletLedgerRepository;
     private final WithdrawalRepository withdrawalRepository;
@@ -118,17 +119,24 @@ public class AnalyticsService {
                 ? BigDecimal.valueOf(completedCount * 100.0 / totalAssignments).setScale(2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
         
-        // Calculate total rewards paid
-        BigDecimal totalRewards = assignments.stream()
-                .filter(a -> "COMPLETED".equals(a.getStatus()))
-                .map(a -> BigDecimal.ZERO) // This should come from wallet ledger
+        // Calculate total rewards paid from wallet ledger
+        BigDecimal totalRewards = walletLedgerRepository
+                .findByTransactionTypeAndCreatedAtBetween("TASK_REWARD", startOfDay, endOfDay)
+                .stream()
+                .filter(ledger -> assignments.stream()
+                        .anyMatch(a -> a.getUserId().equals(ledger.getUserId()) && "COMPLETED".equals(a.getStatus())))
+                .map(WalletLedger::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        // Get task entity
+        Task task = taskRepository.findById(taskId).orElse(null);
         
         // Update or create analytics record
         TaskEngagementAnalytics analytics = taskEngagementRepository
                 .findByBrandAndTaskIdAndDate(brand, taskId, date)
                 .orElse(TaskEngagementAnalytics.builder()
                         .brand(brand)
+                        .task(task)
                         .date(date)
                         .build());
         
