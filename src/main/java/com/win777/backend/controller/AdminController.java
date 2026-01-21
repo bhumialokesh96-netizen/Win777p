@@ -41,8 +41,8 @@ public class AdminController {
         
         AdminUser adminUser = admin.get();
         
-        // Generate JWT token for admin
-        String token = jwtUtil.generateToken(adminUser.getUsername());
+        // Generate JWT token for admin (using admin ID as userId and username as mobile)
+        String token = jwtUtil.generateToken(adminUser.getId(), adminUser.getUsername());
         
         AdminLoginResponse response = AdminLoginResponse.builder()
             .adminId(adminUser.getId())
@@ -201,9 +201,8 @@ public class AdminController {
      */
     private Long getAdminIdFromToken(String authHeader) {
         String token = authHeader.replace("Bearer ", "");
-        String username = jwtUtil.extractUsername(token);
-        // For now, return a dummy admin ID. In production, you'd fetch the actual admin ID
-        return 1L;
+        // Extract user ID from token (for admin, this is the admin ID)
+        return jwtUtil.extractUserId(token);
     }
     
     /**
