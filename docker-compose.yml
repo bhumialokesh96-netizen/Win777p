@@ -29,5 +29,83 @@ services:
       timeout: 5s
       retries: 5
 
+  # Redis Cluster for production scaling (commented out for local development)
+  # Uncomment these services for production deployment
+  # redis-node-1:
+  #   image: redis:7-alpine
+  #   command: redis-server --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+  #   ports:
+  #     - "7001:6379"
+  #   volumes:
+  #     - redis-cluster-1:/data
+  
+  # redis-node-2:
+  #   image: redis:7-alpine
+  #   command: redis-server --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+  #   ports:
+  #     - "7002:6379"
+  #   volumes:
+  #     - redis-cluster-2:/data
+  
+  # redis-node-3:
+  #   image: redis:7-alpine
+  #   command: redis-server --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+  #   ports:
+  #     - "7003:6379"
+  #   volumes:
+  #     - redis-cluster-3:/data
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: win777-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    depends_on:
+      - app
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: win777-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  # Application container
+  app:
+    build: .
+    container_name: win777-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/win777db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:
+  # redis-cluster-1:
+  # redis-cluster-2:
+  # redis-cluster-3:
