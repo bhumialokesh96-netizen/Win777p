@@ -11,8 +11,7 @@ CREATE TABLE device_mappings (
     user_id BIGINT NOT NULL REFERENCES users(id),
     first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_suspicious BOOLEAN DEFAULT FALSE,
-    UNIQUE(device_fingerprint)
+    is_suspicious BOOLEAN DEFAULT FALSE
 );
 
 -- Fraud activity logs
@@ -31,7 +30,7 @@ CREATE TABLE fraud_logs (
 CREATE TABLE user_bans (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id),
-    banned_by BIGINT REFERENCES users(id),
+    banned_by BIGINT REFERENCES admin_users(id),
     reason TEXT,
     ban_type VARCHAR(20) DEFAULT 'MANUAL',
     banned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

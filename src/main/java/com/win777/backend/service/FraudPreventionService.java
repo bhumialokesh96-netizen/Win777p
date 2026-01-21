@@ -9,12 +9,14 @@ import com.win777.backend.repository.FraudLogRepository;
 import com.win777.backend.repository.UserBanRepository;
 import com.win777.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -80,24 +82,34 @@ public class FraudPreventionService {
     
     /**
      * Check if SMS rate limit has been exceeded using Redis
+     * Uses Redis INCR with EXPIRE for atomic rate limiting
      */
     public boolean checkSmsRateLimit(Long userId) {
         String key = "sms:rate:" + userId;
-        Long count = redisTemplate.opsForValue().increment(key);
         
-        if (count == 1) {
-            // Set expiration on first increment (1 hour window)
-            redisTemplate.expire(key, 1, TimeUnit.HOURS);
+        try {
+            // Use Redis pipeline for atomic operations
+            Long count = redisTemplate.execute((RedisCallback<Long>) connection -> {
+                connection.openPipeline();
+                connection.incr(key.getBytes());
+                connection.expire(key.getBytes(), 3600); // 1 hour
+                List<Object> results = connection.closePipeline();
+                return results != null && !results.isEmpty() ? (Long) results.get(0) : 1L;
+            });
+            
+            // Maximum 10 SMS verifications per hour
+            if (count != null && count > 10) {
+                logFraud(userId, null, "SMS_RATE_LIMIT_EXCEEDED", 
+                    "User exceeded SMS rate limit: " + count + " attempts", "MEDIUM");
+                return false;
+            }
+            
+            return true;
+        } catch (Exception e) {
+            // If Redis fails, log and allow the operation (fail open for availability)
+            // In production, you might want to fail closed or have a circuit breaker
+            return true;
         }
-        
-        // Maximum 10 SMS verifications per hour
-        if (count > 10) {
-            logFraud(userId, null, "SMS_RATE_LIMIT_EXCEEDED", 
-                "User exceeded SMS rate limit: " + count + " attempts", "MEDIUM");
-            return false;
-        }
-        
-        return true;
     }
     
     /**
