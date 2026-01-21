@@ -25,8 +25,21 @@ public class WithdrawalService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
     
+    @Autowired
+    private FraudPreventionService fraudPreventionService;
+    
     @Transactional
     public Withdrawal requestWithdrawal(Long userId, WithdrawRequest request) {
+        // Check if user is banned
+        if (fraudPreventionService.isUserBanned(userId)) {
+            throw new RuntimeException("Account is banned. Cannot process withdrawal.");
+        }
+        
+        // Check withdrawal cooldown period
+        if (!fraudPreventionService.checkWithdrawalCooldown(userId)) {
+            throw new RuntimeException("Withdrawal cooldown period active. Please try again later.");
+        }
+        
         String lockKey = "withdrawal:lock:" + userId;
         
         Boolean lockAcquired = redisTemplate.opsForValue().setIfAbsent(lockKey, "locked", 30, TimeUnit.SECONDS);
@@ -59,6 +72,9 @@ public class WithdrawalService {
                 withdrawal.getId(), 
                 "Withdrawal request"
             );
+            
+            // Update last withdrawal timestamp
+            fraudPreventionService.updateLastWithdrawal(userId);
             
             return withdrawal;
         } finally {

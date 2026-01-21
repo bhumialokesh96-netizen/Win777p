@@ -1,9 +1,9 @@
-# WIN777 Backend - Phase 1 MVP
+# WIN777 Backend - Phase 1 MVP & Phase 2 Implementation
 
 ## Overview
-This is the backend implementation for WIN777 Platform Phase 1, built with Spring Boot and following clean architecture principles.
+This is the backend implementation for WIN777 Platform, built with Spring Boot and following clean architecture principles.
 
-## Features
+## Phase 1 Features (MVP)
 
 ### Authentication Service
 - **POST /auth/register** - User registration with mobile, password (BCrypt), and device fingerprint
@@ -25,16 +25,63 @@ This is the backend implementation for WIN777 Platform Phase 1, built with Sprin
 - Includes Redis-based locking mechanism
 - State management (pending → success)
 
+## Phase 2 Features (NEW)
+
+### 1. Fraud Prevention Mechanisms
+- **Device-to-Account Mapping**: Ensures unique device to account association
+- **SMS Hash Duplication Check**: Prevents duplicate SMS submissions (Phase 1 + enhanced)
+- **Rate Limiting**: Redis-based rate limiting for SMS tasks (10 per hour)
+- **Emulator Detection**: Heuristics-based detection of emulator usage
+- **Multi-SIM Detection**: Validates consistent mobile number usage
+- **Withdrawal Cooldown**: 24-hour cooldown period between withdrawals
+- **Manual Ban System**: Admin-controlled user banning with reason tracking
+
+### 2. Admin Panel Backend APIs
+- **POST /admin/login** - Admin authentication
+- **GET /admin/users** - List users with pagination
+- **GET /admin/users/search** - Search users by mobile
+- **POST /admin/users/{id}/ban** - Ban user with reason
+- **POST /admin/users/{id}/unban** - Unban user
+- **POST /admin/users/{id}/adjust-balance** - Manual balance adjustment
+- **POST /admin/tasks** - Create/update tasks
+- **DELETE /admin/tasks/{id}** - Delete task
+- **GET /admin/withdrawals/pending** - Get pending withdrawals
+- **POST /admin/withdrawals/{id}/approve** - Approve withdrawal
+- **POST /admin/withdrawals/{id}/reject** - Reject withdrawal with reason
+
+### 3. Configuration System
+- **GET /config** - Get all active configurations
+- **GET /config/{key}** - Get specific configuration value
+- **POST /config** - Set configuration value (admin only)
+- **GET /config/maintenance-mode** - Check maintenance mode status
+- **POST /config/maintenance-mode** - Set maintenance mode (admin only)
+- **GET /config/theme-color** - Get theme color
+- **POST /config/theme-color** - Set theme color (admin only)
+- **GET /config/banners** - Get active banners
+- **POST /config/banners** - Create/update banner (admin only)
+- **DELETE /config/banners/{id}** - Delete banner (admin only)
+
+### 4. Admin Panel Web Interface
+Located in `/admin-panel` directory - React.js based web application:
+- **Login Page**: Admin authentication
+- **Dashboard**: Overview and statistics
+- **User Management**: View, search, ban/unban users
+- **Task Management**: View and manage tasks
+- **Withdrawal Management**: Approve/reject withdrawals
+- **Configuration**: Manage system settings
+
 ## Technology Stack
 
 - **Java 17**
 - **Spring Boot 3.2.0**
 - **PostgreSQL** - Primary database
-- **Redis** - Caching and distributed locking
+- **Redis** - Caching, distributed locking, and rate limiting
 - **JWT** - Authentication
 - **BCrypt** - Password hashing
 - **Flyway** - Database migrations
 - **Maven** - Build tool
+- **React.js 18** - Admin panel frontend
+- **Axios** - HTTP client for frontend
 
 ## Database Schema
 
@@ -44,12 +91,19 @@ This is the backend implementation for WIN777 Platform Phase 1, built with Sprin
 3. **Only inserts for financial transactions** - Immutable ledger pattern
 
 ### Tables
-- `users` - User accounts with mobile authentication
-- `tasks` - Available tasks for users
+- `users` - User accounts with mobile authentication, fraud prevention fields
+- `tasks` - Available tasks for users with daily limits and reward ranges
 - `task_assignments` - User task assignments
 - `sms_logs` - SMS verification logs with hash-based duplicate detection
 - `wallet_ledger` - Financial transaction ledger (insert-only)
-- `withdrawals` - Withdrawal requests and status tracking
+- `withdrawals` - Withdrawal requests with admin approval tracking
+- `device_mappings` - Device fingerprint to user mappings (Phase 2)
+- `fraud_logs` - Fraud detection activity logs (Phase 2)
+- `user_bans` - User ban tracking with reasons (Phase 2)
+- `admin_users` - Admin user accounts (Phase 2)
+- `admin_audit_logs` - Admin action audit trail (Phase 2)
+- `app_config` - Dynamic application configuration (Phase 2)
+- `banners` - Banner management for app (Phase 2)
 
 ## Prerequisites
 
@@ -96,6 +150,25 @@ mvn spring-boot:run
 ```
 
 The application will start on `http://localhost:8080`
+
+### Frontend (Admin Panel) Setup
+
+```bash
+# Navigate to admin panel directory
+cd admin-panel
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+```
+
+The admin panel will start on `http://localhost:3000`
+
+**Default Admin Credentials:**
+- Username: `admin`
+- Password: `admin123`
 
 ## API Documentation
 
@@ -214,26 +287,42 @@ GET /withdraw/history
 ## Testing
 
 ```bash
-# Run tests
+# Run backend tests
 mvn test
 
 # Run with coverage
 mvn test jacoco:report
+
+# Build without tests
+mvn clean package -DskipTests
+
+# Run frontend tests (in admin-panel directory)
+cd admin-panel
+npm test
 ```
 
-## Future Enhancements (Phase 2 & 3)
+## Deployment Notes
 
-### Phase 2
-- Fraud prevention mechanisms
-- Admin panel
-- Configuration system
-- Enhanced rate limiting
+### Production Checklist
+1. Update admin password in database migration (V4)
+2. Set strong JWT secret in application.properties
+3. Configure proper CORS settings
+4. Set up SSL/TLS certificates
+5. Configure Redis with authentication
+6. Review and adjust fraud detection thresholds
+7. Set up monitoring and alerting
+8. Build admin panel for production: `cd admin-panel && npm run build`
 
-### Phase 3
-- Multi-brand support
-- Advanced analytics
-- Scaling improvements
+## Future Enhancements (Phase 3)
+
+### Planned Features
+- Multi-brand/white-label support
+- Advanced analytics dashboard
+- Fraud detection ML models
 - Performance optimizations
+- Comprehensive monitoring and logging
+- Automated scaling capabilities
+- Enhanced reporting system
 
 ## License
 

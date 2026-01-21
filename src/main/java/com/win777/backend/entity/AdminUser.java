@@ -12,44 +12,32 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "admin_users")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class User {
+public class AdminUser {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(unique = true, nullable = false, length = 15)
-    private String mobile;
+    @Column(unique = true, nullable = false, length = 50)
+    private String username;
     
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
     
-    @Column(name = "device_fingerprint")
-    private String deviceFingerprint;
+    @Column(unique = true, nullable = false, length = 100)
+    private String email;
     
     @Column(length = 20)
-    private String status = "ACTIVE";
+    private String role = "ADMIN";
     
-    @Column(name = "is_banned")
-    private Boolean isBanned = false;
-    
-    @Column(name = "ban_reason", columnDefinition = "TEXT")
-    private String banReason;
-    
-    @Column(name = "is_emulator")
-    private Boolean isEmulator = false;
-    
-    @Column(name = "device_count")
-    private Integer deviceCount = 1;
-    
-    @Column(name = "last_withdrawal_at")
-    private LocalDateTime lastWithdrawalAt;
+    @Column(name = "is_active")
+    private Boolean isActive = true;
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

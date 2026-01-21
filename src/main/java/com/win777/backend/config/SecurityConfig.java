@@ -32,7 +32,10 @@ public class SecurityConfig {
             // JWT tokens in Authorization headers are not vulnerable to CSRF attacks
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**", "/health/**").permitAll()
+                .requestMatchers("/auth/**", "/health/**", "/admin/login", 
+                    "/config/**", "/config/maintenance-mode", "/config/theme-color", 
+                    "/config/banners").permitAll()
+                .requestMatchers("/admin/**").authenticated()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

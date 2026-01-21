@@ -31,3 +31,8 @@ logs/
 # Application
 application-local.properties
 application-dev.properties
+
+# Admin Panel
+admin-panel/node_modules/
+admin-panel/build/
+admin-panel/.env.local

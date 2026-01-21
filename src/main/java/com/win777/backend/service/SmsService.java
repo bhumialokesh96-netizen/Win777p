@@ -18,13 +18,27 @@ public class SmsService {
     @Autowired
     private SmsLogRepository smsLogRepository;
     
+    @Autowired
+    private FraudPreventionService fraudPreventionService;
+    
     @Transactional
     public SmsLog verifyAndLog(SmsVerifyRequest request) {
+        // Check SMS rate limit
+        if (!fraudPreventionService.checkSmsRateLimit(request.getUserId())) {
+            throw new RuntimeException("SMS rate limit exceeded. Please try again later.");
+        }
+        
         String messageHash = generateHash(request.getMessageContent());
         
+        // Check for duplicate SMS (already implemented in Phase 1)
         if (smsLogRepository.existsByMessageHash(messageHash)) {
+            fraudPreventionService.logFraud(request.getUserId(), null, "DUPLICATE_SMS", 
+                "Duplicate SMS submission detected", "HIGH");
             throw new RuntimeException("Duplicate SMS detected");
         }
+        
+        // Check multi-SIM pattern
+        fraudPreventionService.checkMultiSimPattern(request.getUserId(), request.getMobile());
         
         SmsLog smsLog = SmsLog.builder()
                 .userId(request.getUserId())

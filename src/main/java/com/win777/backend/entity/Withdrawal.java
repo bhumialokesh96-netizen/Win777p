@@ -41,6 +41,15 @@ public class Withdrawal {
     @Column(name = "request_data", columnDefinition = "jsonb")
     private Map<String, Object> requestData;
     
+    @Column(name = "approved_by")
+    private Long approvedBy;
+    
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+    
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+    
     @Column(name = "processed_at")
     private LocalDateTime processedAt;
     
