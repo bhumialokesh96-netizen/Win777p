@@ -29,40 +29,50 @@ public class WithdrawalService {
     public Withdrawal requestWithdrawal(Long userId, WithdrawRequest request) {
         String lockKey = "withdrawal:lock:" + userId;
         
-        Boolean lockAcquired = redisTemplate.opsForValue().setIfAbsent(lockKey, "locked", 30, TimeUnit.SECONDS);
-        
-        if (Boolean.FALSE.equals(lockAcquired)) {
-            throw new RuntimeException("Another withdrawal is in progress");
-        }
-        
         try {
-            BigDecimal currentBalance = walletService.getWalletSummary(userId).getBalance();
+            Boolean lockAcquired = redisTemplate.opsForValue().setIfAbsent(lockKey, "locked", 30, TimeUnit.SECONDS);
             
-            if (currentBalance.compareTo(request.getAmount()) < 0) {
-                throw new RuntimeException("Insufficient balance");
+            if (Boolean.FALSE.equals(lockAcquired)) {
+                throw new RuntimeException("Another withdrawal is in progress");
             }
             
-            Withdrawal withdrawal = Withdrawal.builder()
-                    .userId(userId)
-                    .amount(request.getAmount())
-                    .status("PENDING")
-                    .requestData(request.getAdditionalData())
-                    .build();
-            
-            withdrawal = withdrawalRepository.save(withdrawal);
-            
-            walletService.addTransaction(
-                userId, 
-                "WITHDRAWAL", 
-                request.getAmount().negate(), 
-                "WITHDRAWAL", 
-                withdrawal.getId(), 
-                "Withdrawal request"
-            );
-            
-            return withdrawal;
-        } finally {
-            redisTemplate.delete(lockKey);
+            try {
+                BigDecimal currentBalance = walletService.getWalletSummary(userId).getBalance();
+                
+                if (currentBalance.compareTo(request.getAmount()) < 0) {
+                    throw new RuntimeException("Insufficient balance");
+                }
+                
+                Withdrawal withdrawal = Withdrawal.builder()
+                        .userId(userId)
+                        .amount(request.getAmount())
+                        .status("PENDING")
+                        .requestData(request.getAdditionalData())
+                        .build();
+                
+                withdrawal = withdrawalRepository.save(withdrawal);
+                
+                walletService.addTransaction(
+                    userId, 
+                    "WITHDRAWAL", 
+                    request.getAmount().negate(), 
+                    "WITHDRAWAL", 
+                    withdrawal.getId(), 
+                    "Withdrawal request"
+                );
+                
+                return withdrawal;
+            } finally {
+                redisTemplate.delete(lockKey);
+            }
+        } catch (Exception e) {
+            // Ensure lock is released even if Redis operations fail
+            try {
+                redisTemplate.delete(lockKey);
+            } catch (Exception ignored) {
+                // Ignore errors during cleanup
+            }
+            throw e;
         }
     }
     

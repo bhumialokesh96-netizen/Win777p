@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class TaskAssignment {
     
     @Id
@@ -29,8 +32,9 @@ public class TaskAssignment {
     @Column(length = 20)
     private String status = "PENDING";
     
-    @Column(name = "assigned_at")
-    private LocalDateTime assignedAt = LocalDateTime.now();
+    @CreatedDate
+    @Column(name = "assigned_at", nullable = false, updatable = false)
+    private LocalDateTime assignedAt;
     
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
