@@ -33,6 +33,10 @@ public class AdminUser {
     @Column(unique = true, nullable = false, length = 100)
     private String email;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    private Brand brand;
+    
     @Column(length = 20)
     private String role = "ADMIN";
     

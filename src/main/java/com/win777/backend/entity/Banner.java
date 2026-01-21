@@ -33,6 +33,10 @@ public class Banner {
     @Column(name = "link_url", columnDefinition = "TEXT")
     private String linkUrl;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    private Brand brand;
+    
     @Column(name = "display_order")
     private Integer displayOrder = 0;
     

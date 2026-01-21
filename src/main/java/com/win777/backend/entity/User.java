@@ -33,6 +33,10 @@ public class User {
     @Column(name = "device_fingerprint")
     private String deviceFingerprint;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    private Brand brand;
+    
     @Column(length = 20)
     private String status = "ACTIVE";
     

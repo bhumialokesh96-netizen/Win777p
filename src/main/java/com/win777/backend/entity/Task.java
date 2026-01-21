@@ -37,6 +37,10 @@ public class Task {
     @Column(name = "task_type", nullable = false, length = 50)
     private String taskType;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    private Brand brand;
+    
     @Column(length = 20)
     private String status = "ACTIVE";
     
