@@ -40,6 +40,18 @@ public class Task {
     @Column(length = 20)
     private String status = "ACTIVE";
     
+    @Column(name = "daily_limit")
+    private Integer dailyLimit = 10;
+    
+    @Column(name = "min_reward")
+    private BigDecimal minReward;
+    
+    @Column(name = "max_reward")
+    private BigDecimal maxReward;
+    
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+    
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

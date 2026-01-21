@@ -12,44 +12,32 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "app_config")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class User {
+public class AppConfig {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(unique = true, nullable = false, length = 15)
-    private String mobile;
+    @Column(name = "config_key", unique = true, nullable = false, length = 100)
+    private String configKey;
     
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+    @Column(name = "config_value", nullable = false, columnDefinition = "TEXT")
+    private String configValue;
     
-    @Column(name = "device_fingerprint")
-    private String deviceFingerprint;
+    @Column(name = "config_type", length = 20)
+    private String configType = "STRING";
     
-    @Column(length = 20)
-    private String status = "ACTIVE";
+    @Column(columnDefinition = "TEXT")
+    private String description;
     
-    @Column(name = "is_banned")
-    private Boolean isBanned = false;
-    
-    @Column(name = "ban_reason", columnDefinition = "TEXT")
-    private String banReason;
-    
-    @Column(name = "is_emulator")
-    private Boolean isEmulator = false;
-    
-    @Column(name = "device_count")
-    private Integer deviceCount = 1;
-    
-    @Column(name = "last_withdrawal_at")
-    private LocalDateTime lastWithdrawalAt;
+    @Column(name = "is_active")
+    private Boolean isActive = true;
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

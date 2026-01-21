@@ -12,44 +12,38 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "banners")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class User {
+public class Banner {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(unique = true, nullable = false, length = 15)
-    private String mobile;
+    @Column(length = 255)
+    private String title;
     
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
     
-    @Column(name = "device_fingerprint")
-    private String deviceFingerprint;
+    @Column(name = "link_url", columnDefinition = "TEXT")
+    private String linkUrl;
     
-    @Column(length = 20)
-    private String status = "ACTIVE";
+    @Column(name = "display_order")
+    private Integer displayOrder = 0;
     
-    @Column(name = "is_banned")
-    private Boolean isBanned = false;
+    @Column(name = "is_active")
+    private Boolean isActive = true;
     
-    @Column(name = "ban_reason", columnDefinition = "TEXT")
-    private String banReason;
+    @Column(name = "start_date")
+    private LocalDateTime startDate;
     
-    @Column(name = "is_emulator")
-    private Boolean isEmulator = false;
-    
-    @Column(name = "device_count")
-    private Integer deviceCount = 1;
-    
-    @Column(name = "last_withdrawal_at")
-    private LocalDateTime lastWithdrawalAt;
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
